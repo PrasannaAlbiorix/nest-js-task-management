@@ -18,10 +18,11 @@ export class TasksService {
   //   return this.tasks;
   // }
 
-  async getTaskById(id: string): Promise<Task> {
+  async getTaskById(id: string, user): Promise<Task> {
     const found = await this.tasksRepository.findOne({
       where: {
         id,
+        user,
       },
     });
     if (!found) {
@@ -31,15 +32,17 @@ export class TasksService {
     }
   }
 
-  async getTasksWithFilter(filterDto: filterDto): Promise<Task[]> {
+  async getTasksWithFilter(filterDto: filterDto, user): Promise<Task[]> {
     const { status, search } = filterDto;
     const query = this.tasksRepository.createQueryBuilder('task');
+    query.where({ user });
+
     if (status) {
       query.andWhere('task.status=:status', { status });
     }
     if (search) {
       query.andWhere(
-        'task.title LIKE :search OR task.description LIKE :search',
+        '(task.title LIKE :search OR task.description LIKE :search)',
         { search: `%${search}%` },
       );
     }
@@ -48,27 +51,28 @@ export class TasksService {
     return tasks;
   }
 
-  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+  async createTask(createTaskDto: CreateTaskDto, user): Promise<Task> {
     const { title, description } = createTaskDto;
     const task = this.tasksRepository.create({
       id: uuid(),
       title,
       description,
       status: TaskStatus.OPEN,
+      user,
     });
 
     await this.tasksRepository.save(task);
     return task;
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const task = await this.getTaskById(id);
+  async updateTaskStatus(id: string, status: TaskStatus, user): Promise<Task> {
+    const task = await this.getTaskById(id, user);
     task.status = status;
     await this.tasksRepository.save(task);
     return task;
   }
 
-  async deleteTask(id: string): Promise<void> {
+  async deleteTask(id: string, user): Promise<void> {
     await this.tasksRepository.delete(id);
   }
 }

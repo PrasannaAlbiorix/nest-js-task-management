@@ -6,8 +6,12 @@ import { AuthCreadentialsDto } from './dto/auth-creadentials.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post()
-  createTask(@Body() authCreadentialsDto: AuthCreadentialsDto) {
+  @Post('signup')
+  createUser(@Body() authCreadentialsDto: AuthCreadentialsDto) {
     return this.authService.createUser(authCreadentialsDto);
+  }
+  @Post('signin')
+  signIn(@Body() authCreadentialsDto: AuthCreadentialsDto) {
+    return this.authService.signIn(authCreadentialsDto);
   }
 }
